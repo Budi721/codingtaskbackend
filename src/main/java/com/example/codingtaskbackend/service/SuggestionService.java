@@ -23,6 +23,8 @@ public class SuggestionService {
 
     public List<Suggestion> getSuggestions(String query, Double lat, Double lon) {
         List<Location> locations = repository.getLocations();
+
+        if (query == null) throw new IllegalArgumentException("please provide query params");
         Supplier<Stream<Double>> arrayOfDistanceSupplier = () -> locations.stream()
                 .filter(location -> location.getName().toLowerCase().contains(query.toLowerCase()))
                 .map(
