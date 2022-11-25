@@ -8,15 +8,17 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Repository
 public class SuggestionFileRepo implements SuggestionRepository {
     @Override
     public List<Location> getLocations() {
-        var file = new File("src/main/resources/static/cities_canada-usa.tsv");
-        var data = tsvr(file);
-        var locations = data.stream().map(this::mapLocationFromArray);
-        return locations.toList();
+        File file = new File("src/main/resources/static/cities_canada-usa.tsv");
+        ArrayList<String[]> data = tsvr(file);
+        Stream<Location> locations = data.stream().map(this::mapLocationFromArray);
+        return locations.collect(Collectors.toList());
     }
 
     private Location mapLocationFromArray(String[] list) {
@@ -34,7 +36,7 @@ public class SuggestionFileRepo implements SuggestionRepository {
         ArrayList<String[]> data = new ArrayList<>();
         try (BufferedReader TSVReader = new BufferedReader(new FileReader(filepath))) {
             String line;
-            var count = 0;
+            int count = 0;
             while ((line = TSVReader.readLine()) != null) {
                 String[] lineItems = line.split("\t");
                 if (count > 0) data.add(lineItems);
