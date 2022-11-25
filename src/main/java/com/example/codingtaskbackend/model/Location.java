@@ -17,27 +17,27 @@ public class Location {
         this.longitude = longitude;
     }
 
-    public String id() {
+    public String getId() {
         return id;
     }
 
-    public String name() {
+    public String getName() {
         return name;
     }
 
-    public String ascii() {
+    public String getAscii() {
         return ascii;
     }
 
-    public String alt_name() {
+    public String getAlt_name() {
         return alt_name;
     }
 
-    public String latitude() {
+    public String getLatitude() {
         return latitude;
     }
 
-    public String longitude() {
+    public String getLongitude() {
         return longitude;
     }
 }

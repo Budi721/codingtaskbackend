@@ -24,25 +24,25 @@ public class SuggestionService {
     public List<Suggestion> getSuggestions(String query, Double lat, Double lon) {
         List<Location> locations = repository.getLocations();
         Supplier<Stream<Double>> arrayOfDistanceSupplier = () -> locations.stream()
-                .filter(location -> location.name().toLowerCase().contains(query.toLowerCase()))
+                .filter(location -> location.getName().toLowerCase().contains(query.toLowerCase()))
                 .map(
                         (s) -> distance(
                                 lat,
                                 lon,
-                                Double.parseDouble(s.latitude()),
-                                Double.parseDouble(s.longitude())
+                                Double.parseDouble(s.getLatitude()),
+                                Double.parseDouble(s.getLongitude())
                         )
                 );
         Double sumOfDistance = arrayOfDistanceSupplier.get().reduce(Double::sum).orElse(1D);
 
         AtomicInteger index = new AtomicInteger();
         Stream<Suggestion> suggestions = locations.stream()
-                .filter(location -> location.name().toLowerCase().contains(query.toLowerCase()))
+                .filter(location -> location.getName().toLowerCase().contains(query.toLowerCase()))
                 .map(location -> {
                     Suggestion suggestion = new Suggestion(
-                            location.name(),
-                            location.latitude(),
-                            location.longitude(),
+                            location.getName(),
+                            location.getLatitude(),
+                            location.getLongitude(),
                             (Math.round(arrayOfDistanceSupplier.get().collect(Collectors.toList()).get(index.get()) / sumOfDistance) == 1) ?
                                     1 :
                                     1 - (arrayOfDistanceSupplier.get().collect(Collectors.toList()).get(index.get()) / sumOfDistance)
@@ -55,8 +55,8 @@ public class SuggestionService {
         if (lat == null && lon == null) return suggestions.collect(Collectors.toList());
 
         Stream<Suggestion> sorted = suggestions.sorted(
-                (o1, o2) -> distance(lat, lon, Double.parseDouble(o1.latitude()), Double.parseDouble(o1.longitude()))
-                        .compareTo(distance(lat, lon, Double.parseDouble(o2.latitude()), Double.parseDouble(o2.longitude()))));
+                (o1, o2) -> distance(lat, lon, Double.parseDouble(o1.getLatitude()), Double.parseDouble(o1.getLongitude()))
+                        .compareTo(distance(lat, lon, Double.parseDouble(o2.getLatitude()), Double.parseDouble(o2.getLongitude()))));
         return sorted.collect(Collectors.toList());
     }
 

@@ -15,19 +15,19 @@ public class Suggestion {
         this.score = score;
     }
 
-    public String name() {
+    public String getName() {
         return name;
     }
 
-    public String latitude() {
+    public String getLatitude() {
         return latitude;
     }
 
-    public String longitude() {
+    public String getLongitude() {
         return longitude;
     }
 
-    public Double score() {
+    public Double getScore() {
         return score;
     }
 }
