@@ -1,0 +1,1 @@
+web: java -jar target/codingtaskbackend-1.0.jar
