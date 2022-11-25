@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -27,9 +28,11 @@ public class SuggestionController {
     public Map<String, List<Suggestion>> getSuggestions(
             @RequestParam(value = "q", required = false) String query,
             @RequestParam(value = "latitude", required = false) Double latitude,
-            @RequestParam(value = "longitude",required = false) Double longitude
+            @RequestParam(value = "longitude", required = false) Double longitude
     ) {
-        var suggestions = service.getSuggestions(query, latitude, longitude);
-        return Map.of("suggestions", suggestions);
+        List<Suggestion> suggestions = service.getSuggestions(query, latitude, longitude);
+        Map<String, List<Suggestion>> map = new HashMap<String, List<Suggestion>>();
+        map.put("suggestions", suggestions);
+        return map;
     }
 }

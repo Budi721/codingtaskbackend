@@ -1,5 +1,6 @@
 package com.example.codingtaskbackend.service;
 
+import com.example.codingtaskbackend.model.Location;
 import com.example.codingtaskbackend.model.Suggestion;
 import com.example.codingtaskbackend.repository.SuggestionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,7 @@ public class SuggestionService {
     }
 
     public List<Suggestion> getSuggestions(String query, Double lat, Double lon) {
-        var locations = repository.getLocations();
+        List<Location> locations = repository.getLocations();
         Supplier<Stream<Double>> arrayOfDistanceSupplier = () -> locations.stream()
                 .filter(location -> location.name().toLowerCase().contains(query.toLowerCase()))
                 .map(
@@ -32,19 +33,19 @@ public class SuggestionService {
                                 Double.parseDouble(s.longitude())
                         )
                 );
-        var sumOfDistance = arrayOfDistanceSupplier.get().reduce(Double::sum).orElse(1D);
+        Double sumOfDistance = arrayOfDistanceSupplier.get().reduce(Double::sum).orElse(1D);
 
         AtomicInteger index = new AtomicInteger();
-        var suggestions = locations.stream()
+        Stream<Suggestion> suggestions = locations.stream()
                 .filter(location -> location.name().toLowerCase().contains(query.toLowerCase()))
                 .map(location -> {
-                    var suggestion = new Suggestion(
+                    Suggestion suggestion = new Suggestion(
                             location.name(),
                             location.latitude(),
                             location.longitude(),
-                            (Math.round(arrayOfDistanceSupplier.get().toList().get(index.get()) / sumOfDistance) == 1) ?
+                            (Math.round(arrayOfDistanceSupplier.get().collect(Collectors.toList()).get(index.get()) / sumOfDistance) == 1) ?
                                     1 :
-                                    1 - (arrayOfDistanceSupplier.get().toList().get(index.get()) / sumOfDistance)
+                                    1 - (arrayOfDistanceSupplier.get().collect(Collectors.toList()).get(index.get()) / sumOfDistance)
                     );
                     index.getAndIncrement();
                     return suggestion;
@@ -53,7 +54,7 @@ public class SuggestionService {
 
         if (lat == null && lon == null) return suggestions.collect(Collectors.toList());
 
-        var sorted = suggestions.sorted(
+        Stream<Suggestion> sorted = suggestions.sorted(
                 (o1, o2) -> distance(lat, lon, Double.parseDouble(o1.latitude()), Double.parseDouble(o1.longitude()))
                         .compareTo(distance(lat, lon, Double.parseDouble(o2.latitude()), Double.parseDouble(o2.longitude()))));
         return sorted.collect(Collectors.toList());
