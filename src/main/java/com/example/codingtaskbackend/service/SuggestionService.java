@@ -5,6 +5,7 @@ import com.example.codingtaskbackend.model.Suggestion;
 import com.example.codingtaskbackend.repository.SuggestionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
@@ -25,29 +26,41 @@ public class SuggestionService {
         List<Location> locations = repository.getLocations();
 
         if (query == null) throw new IllegalArgumentException("please provide query params");
-        Supplier<Stream<Double>> arrayOfDistanceSupplier = () -> locations.stream()
-                .filter(location -> location.getName().toLowerCase().contains(query.toLowerCase()))
-                .map(
-                        (s) -> distance(
-                                lat,
-                                lon,
-                                Double.parseDouble(s.getLatitude()),
-                                Double.parseDouble(s.getLongitude())
-                        )
-                );
+
+        Supplier<Stream<Double>> arrayOfDistanceSupplier = Stream::empty;
+        if (lat != null && lon != null) {
+            arrayOfDistanceSupplier = () -> locations.stream()
+                    .filter(location -> location.getName().toLowerCase().contains(query.toLowerCase()))
+                    .map(
+                            (s) -> distance(
+                                    lat,
+                                    lon,
+                                    Double.parseDouble(s.getLatitude()),
+                                    Double.parseDouble(s.getLongitude())
+                            )
+                    );
+        }
+
+
         Double sumOfDistance = arrayOfDistanceSupplier.get().reduce(Double::sum).orElse(1D);
 
         AtomicInteger index = new AtomicInteger();
+
+        Supplier<Stream<Double>> finalArrayOfDistanceSupplier = arrayOfDistanceSupplier;
         Stream<Suggestion> suggestions = locations.stream()
                 .filter(location -> location.getName().toLowerCase().contains(query.toLowerCase()))
                 .map(location -> {
+                    double portion = 1D;
+                    if (lat != null && lon != null) {
+                        portion = finalArrayOfDistanceSupplier.get()
+                                .collect(Collectors.toList()).get(index.get()) / sumOfDistance;
+                    }
+
                     Suggestion suggestion = new Suggestion(
                             location.getName(),
                             location.getLatitude(),
                             location.getLongitude(),
-                            (Math.round(arrayOfDistanceSupplier.get().collect(Collectors.toList()).get(index.get()) / sumOfDistance) == 1) ?
-                                    1 :
-                                    1 - (arrayOfDistanceSupplier.get().collect(Collectors.toList()).get(index.get()) / sumOfDistance)
+                            (Math.round(portion) == 1) ? 1 : (1 - portion)
                     );
                     index.getAndIncrement();
                     return suggestion;
